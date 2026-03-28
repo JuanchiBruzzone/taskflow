@@ -3,29 +3,29 @@ import { describe, it, expect, vi } from 'vitest'
 import request from 'supertest'
 import { createApp } from '../../src/app'
 
-// In a real project these tests run against a test database.
-// Here we mock the services to keep tests fast and isolated.
-// Integration tests with a real DB go in tests/integration/db/ using Testcontainers.
-
 vi.mock('../../src/services/auth.service', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../src/services/auth.service')>()
+
+  const mock = {
+    register: vi.fn(),
+    login: vi.fn(),
+    verifyToken: vi.fn(),
+  }
+
   return {
     ...actual,
-    AuthService: vi.fn().mockImplementation(() => ({
-      register: vi.fn(),
-      login: vi.fn(),
-      verifyToken: vi.fn(),
-    })),
+    AuthService: vi.fn(() => mock),
+    __mock: mock,
   }
 })
 
-import { AuthService, ConflictError, UnauthorizedError } from '../../src/services/auth.service'
+import * as AuthModule from '../../src/services/auth.service'
+
+const authMock = (AuthModule as any).__mock
+
+import { ConflictError, UnauthorizedError } from '../../src/services/auth.service'
 
 const app = createApp()
-
-function getAuthServiceMock() {
-  return (AuthService as any).mock.results[0].value
-}
 
 // ════════════════════════════════════════════════════════════════
 // POST /auth/register
@@ -33,14 +33,14 @@ function getAuthServiceMock() {
 describe('POST /auth/register', () => {
 
   it('201 — registro exitoso devuelve user y token', async () => {
-    getAuthServiceMock().register.mockResolvedValue({
+    authMock.register.mockResolvedValue({
       user: { id: 'user-1', email: 'ana@test.com', name: 'Ana' },
       token: 'jwt.token.here',
     })
 
     const res = await request(app)
-      .post('/auth/register')
-      .send({ email: 'ana@test.com', password: 'Password1', name: 'Ana' })
+        .post('/auth/register')
+        .send({ email: 'ana@test.com', password: 'Password1', name: 'Ana' })
 
     expect(res.status).toBe(201)
     expect(res.body.token).toBeDefined()
@@ -48,38 +48,38 @@ describe('POST /auth/register', () => {
   })
 
   it('409 — email ya registrado', async () => {
-    getAuthServiceMock().register.mockRejectedValue(
-      new ConflictError('Email already registered')
+    authMock.register.mockRejectedValue(
+        new ConflictError('Email already registered')
     )
 
     const res = await request(app)
-      .post('/auth/register')
-      .send({ email: 'ana@test.com', password: 'Password1' })
+        .post('/auth/register')
+        .send({ email: 'ana@test.com', password: 'Password1' })
 
     expect(res.status).toBe(409)
     expect(res.body.error).toMatch(/already registered/i)
   })
 
   it('400 — password débil', async () => {
-    getAuthServiceMock().register.mockRejectedValue(
-      Object.assign(new Error('Validation error'), { statusCode: 400 })
+    authMock.register.mockRejectedValue(
+        Object.assign(new Error('Validation error'), { statusCode: 400 })
     )
 
     const res = await request(app)
-      .post('/auth/register')
-      .send({ email: 'ana@test.com', password: 'weak' })
+        .post('/auth/register')
+        .send({ email: 'ana@test.com', password: 'weak' })
 
     expect(res.status).toBe(400)
   })
 
   it('400 — email con formato inválido', async () => {
-    getAuthServiceMock().register.mockRejectedValue(
-      Object.assign(new Error('Invalid email format'), { statusCode: 400 })
+    authMock.register.mockRejectedValue(
+        Object.assign(new Error('Invalid email format'), { statusCode: 400 })
     )
 
     const res = await request(app)
-      .post('/auth/register')
-      .send({ email: 'notanemail', password: 'Password1' })
+        .post('/auth/register')
+        .send({ email: 'notanemail', password: 'Password1' })
 
     expect(res.status).toBe(400)
   })
@@ -91,40 +91,40 @@ describe('POST /auth/register', () => {
 describe('POST /auth/login', () => {
 
   it('200 — login exitoso devuelve token', async () => {
-    getAuthServiceMock().login.mockResolvedValue({
+    authMock.login.mockResolvedValue({
       user: { id: 'user-1', email: 'ana@test.com', name: 'Ana' },
       token: 'jwt.token.here',
     })
 
     const res = await request(app)
-      .post('/auth/login')
-      .send({ email: 'ana@test.com', password: 'Password1' })
+        .post('/auth/login')
+        .send({ email: 'ana@test.com', password: 'Password1' })
 
     expect(res.status).toBe(200)
     expect(res.body.token).toBeDefined()
   })
 
   it('401 — credenciales incorrectas', async () => {
-    getAuthServiceMock().login.mockRejectedValue(
-      new UnauthorizedError('Invalid credentials')
+    authMock.login.mockRejectedValue(
+        new UnauthorizedError('Invalid credentials')
     )
 
     const res = await request(app)
-      .post('/auth/login')
-      .send({ email: 'ana@test.com', password: 'Wrong1234' })
+        .post('/auth/login')
+        .send({ email: 'ana@test.com', password: 'Wrong1234' })
 
     expect(res.status).toBe(401)
     expect(res.body.error).toMatch(/invalid credentials/i)
   })
 
   it('401 — cuenta bloqueada', async () => {
-    getAuthServiceMock().login.mockRejectedValue(
-      new UnauthorizedError('Account locked. Try again in 14 minutes')
+    authMock.login.mockRejectedValue(
+        new UnauthorizedError('Account locked. Try again in 14 minutes')
     )
 
     const res = await request(app)
-      .post('/auth/login')
-      .send({ email: 'ana@test.com', password: 'Password1' })
+        .post('/auth/login')
+        .send({ email: 'ana@test.com', password: 'Password1' })
 
     expect(res.status).toBe(401)
     expect(res.body.error).toMatch(/locked/i)
