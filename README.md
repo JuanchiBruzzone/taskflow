@@ -6,6 +6,8 @@ Equipo:
 - Giuliana Bordon Castro
 - Felipe Sere
 
+Workflow habilitado.
+
 Hito 1: Pronto
 
 Proyecto integrador del curso **Testing y Calidad de Software**.
