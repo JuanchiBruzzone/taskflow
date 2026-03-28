@@ -10,7 +10,6 @@ env:
   NODE_VERSION: '20'
 
 jobs:
-  # ── 1. Lint ──────────────────────────────────────────────────
   lint:
     name: 🔍 Lint & Type Check
     runs-on: ubuntu-latest
@@ -21,11 +20,13 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        working-directory: apps/api
       - run: npm run lint
       - name: Type check
         run: npx tsc --noEmit --project apps/api/tsconfig.json
 
-  # ── 2. Unit Tests ────────────────────────────────────────────
   unit-tests:
     name: 🧪 Unit Tests
     runs-on: ubuntu-latest
@@ -37,6 +38,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        working-directory: apps/api
       - name: Run unit tests with coverage
         run: npm run test:unit
         working-directory: apps/api
@@ -46,7 +50,6 @@ jobs:
           directory: apps/api/coverage
           flags: unit
 
-  # ── 3. Integration Tests ─────────────────────────────────────
   integration-tests:
     name: 🔗 Integration Tests
     runs-on: ubuntu-latest
@@ -75,6 +78,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        working-directory: apps/api
       - name: Run Prisma migrations
         run: npx prisma migrate deploy
         working-directory: apps/api
@@ -82,7 +88,6 @@ jobs:
         run: npm run test:integration
         working-directory: apps/api
 
-  # ── 4. BDD Tests ─────────────────────────────────────────────
   bdd-tests:
     name: 🥒 BDD / Cucumber Tests
     runs-on: ubuntu-latest
@@ -111,13 +116,15 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        working-directory: apps/api
       - run: npx prisma migrate deploy
         working-directory: apps/api
       - name: Run BDD scenarios
         run: npm run test:bdd
         working-directory: apps/api
 
-  # ── 5. E2E Tests (solo en PR a main) ─────────────────────────
   e2e-tests:
     name: 🎭 E2E Tests (Playwright)
     runs-on: ubuntu-latest
@@ -147,6 +154,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
       - run: npm ci
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        working-directory: apps/api
       - run: npx playwright install --with-deps chromium
       - run: npx prisma migrate deploy && npx prisma db seed
         working-directory: apps/api
