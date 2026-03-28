@@ -1,5 +1,13 @@
 # TaskFlow 🗂️
 
+Equipo:
+
+- Juan Ignacio Bruzzone
+- Giuliana Bordon Castro
+- Felipe Sere
+
+Hito 1: Pronto
+
 Proyecto integrador del curso **Testing y Calidad de Software**.
 App de gestión de tareas (tipo Jira simplificado) con suite completa de tests.
 

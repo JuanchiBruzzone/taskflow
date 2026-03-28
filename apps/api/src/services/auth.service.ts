@@ -83,7 +83,8 @@ export class AuthService {
       // BUG-05: lock only applied if attempts >= threshold, not >
       // This means at exactly 5 fails, lock is not yet applied.
       // Fix would be: newFailedCount >= MAX_FAILED_ATTEMPTS
-      const shouldLock = newFailedCount > MAX_FAILED_ATTEMPTS
+      //FIXED > por >=, test pasa
+      const shouldLock = newFailedCount >= MAX_FAILED_ATTEMPTS
 
       await this.db.user.update({
         where: { id: user.id },

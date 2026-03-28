@@ -132,4 +132,36 @@ export class TaskService {
     })
     if (!member) throw new ForbiddenError('Not a project member')
   }
+
+  validateTitle(title: string): void {
+    const trimmed = title.trim()
+
+    if (trimmed.length === 0) {
+      throw new Error('El título no puede estar vacío')
+    }
+
+    if (trimmed.length < 3) {
+      throw new Error('El título debe tener al menos 3 caracteres')
+    }
+
+    if (trimmed.length > 100) {
+      throw new Error('El título no puede superar los 100 caracteres')
+    }
+  }
+
+  validateStatusTransition(current: Status, next: Status): void {
+    if (current === next) {
+      throw new Error(`Transición de estado inválida: ${current} → ${next}`);
+    }
+
+    const validTransitions: Record<Status, Status[]> = {
+      TODO: ['IN_PROGRESS'],
+      IN_PROGRESS: ['DONE'],
+      DONE: [],
+    };
+
+    if (!validTransitions[current].includes(next)) {
+      throw new Error(`Transición de estado inválida: ${current} → ${next}`);
+    }
+  }
 }
