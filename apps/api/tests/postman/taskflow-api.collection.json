@@ -1,0 +1,468 @@
+{
+  "info": {
+    "_postman_id": "9ebaa3ff-0ac9-4d34-b601-9bbbf1f3ccf0",
+    "name": "TaskFlow API — Clase 4",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "46948214",
+    "_collection_link": "https://go.postman.co/collection/46948214-9ebaa3ff-0ac9-4d34-b601-9bbbf1f3ccf0?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Autenticación",
+      "item": [
+        {
+          "name": "Registro de usuario (US-01)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 201 Created', () => {",
+                  " pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Response tiene id y email', () => {",
+                  " const body = pm.response.json();",
+                  " pm.expect(body).to.have.property('id');",
+                  " pm.expect(body.email).to.eql('ana@ejemplo.com');",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n \"name\": \"Ana García\",\n \"email\": \"ana@ejemplo.com\",\n \"password\": \"Segura123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "US-01 — Registro de usuario  \nCA verificado: Email con formato válido y password válida permiten registrar un usuario  \nTipo de test: Funcional — happy path  \nResultado esperado: 201 Created con body que incluye id y email\n\nUS-01 — Registro de usuario  \nCA verificado: La password debe tener mínimo 8 caracteres  \nTipo de test: Funcional — edge case  \nResultado esperado: 400 Bad Request con body.message descriptivo"
+          },
+          "response": []
+        },
+        {
+          "name": "Login y captura automática del JWT (US-02)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 200 OK', () => {",
+                  " pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Response contiene token JWT', () => {",
+                  " const body = pm.response.json();",
+                  " pm.expect(body).to.have.property('token');",
+                  " // Guardar el token en la variable de entorno",
+                  " pm.environment.set('token', body.token);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n \"email\": \"ana@ejemplo.com\",\n \"password\": \"Segura123!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "US-02 — Login  \nCA verificado: Login correcto devuelve JWT  \nTipo de test: Funcional — happy path  \nResultado esperado: 200 OK con token JWT en la respuesta\n\nUS-02 — Login  \nCA verificado: Password incorrecta debe devolver error de autenticación  \nTipo de test: Funcional — edge case  \nResultado esperado: 401 Unauthorized con body.message\n\nUS-02 — Login  \nCA verificado: Email inexistente no debe autenticarse  \nTipo de test: Funcional — edge case  \nResultado esperado: 401 o 404 con mensaje descriptivo"
+          },
+          "response": []
+        },
+        {
+          "name": "Negativo 1 - Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"Response has message\", function () {",
+                  "    pm.expect(jsonData).to.have.property(\"message\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@taskflow.dev\",\n  \"password\": \"malpassword\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Negativo 2 - Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 401 or 404\", function () {",
+                  "    pm.expect(pm.response.code).to.be.oneOf([401, 404]);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"Response has message\", function () {",
+                  "    pm.expect(jsonData).to.have.property(\"message\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"noexiste@taskflow.dev\",\n  \"password\": \"Test1234!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Proyectos",
+      "item": [
+        {
+          "name": "Crear proyecto (US-03)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Proyecto creado con status 201', () => {",
+                  " pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test('Response tiene id, name y status activo', () => {",
+                  " const body = pm.response.json();",
+                  " pm.expect(body.id).to.be.a('string');",
+                  " pm.expect(body.name).to.eql('Mi proyecto de testing');",
+                  " // Guardar ID para los siguientes requests",
+                  " pm.environment.set('project_id', body.id);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \n    \"name\": \"Mi proyecto de testing\", \n    \"description\": \"Creado en la práctica Clase 4\" \n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/projects",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects"
+              ]
+            },
+            "description": "US-03 — Crear proyecto  \nCA verificado: Usuario autenticado puede crear un proyecto  \nTipo de test: Funcional — happy path  \nResultado esperado: 201 Created con id, name y proyecto activo"
+          },
+          "response": []
+        },
+        {
+          "name": "Lista proyectos del usuario (US-04)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"Response is an array\", function () {",
+                  "    pm.expect(jsonData).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "pm.test(\"At least one project exists\", function () {",
+                  "    pm.expect(jsonData.length).to.be.greaterThan(0);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/projects",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects"
+              ]
+            },
+            "description": "US-04 — Listar proyectos del usuario  \nCA verificado: Usuario autenticado puede obtener sus proyectos  \nTipo de test: Funcional — happy path  \nResultado esperado: 200 OK con un array de proyectos"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Tareas",
+      "item": [
+        {
+          "name": "Crear tarea (US-05) y capturar task_id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Tarea creada con status TODO', () => {",
+                  " pm.response.to.have.status(201);",
+                  " const body = pm.response.json();",
+                  " pm.expect(body.status).to.eql('TODO');",
+                  " pm.environment.set('task_id', body.id);",
+                  "});",
+                  "",
+                  "pm.test('Priority HIGH se persistió correctamente', () => {",
+                  " pm.expect(pm.response.json().priority).to.eql('HIGH');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Configurar colección Postman\",\n    \"priority\": \"HIGH\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/projects/{{project_id}}/tasks",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "projects",
+                "{{project_id}}",
+                "tasks"
+              ]
+            },
+            "description": "US-05 — Crear tarea  \nCA verificado: Se puede crear una tarea dentro de un proyecto válido  \nTipo de test: Funcional — happy path  \nResultado esperado: 201 Created con id de tarea y status TODO\n\nUS-05 — Crear tarea  \nCA verificado: El título no puede estar vacío  \nTipo de test: Funcional — edge case  \nResultado esperado: 400 Bad Request con body.message descriptivo"
+          },
+          "response": []
+        },
+        {
+          "name": "Cambiar estado de tarea (US-06)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const jsonData = pm.response.json();",
+                  "",
+                  "pm.test(\"Task status was updated\", function () {",
+                  "    pm.expect(jsonData).to.have.property(\"status\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"PENDIENTE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/tasks/{{task_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "tasks",
+                "{{task_id}}"
+              ]
+            },
+            "description": "US-06 — Cambiar estado de tarea  \nCA verificado: Transición TODO → IN_PROGRESS válida  \nTipo de test: Funcional — happy path  \nResultado esperado: 200 OK con status IN_PROGRESS\n\nUS-06 — Cambiar estado de tarea  \nCA verificado: Transición IN_PROGRESS → DONE válida  \nTipo de test: Funcional — happy path  \nResultado esperado: 200 OK con status DONE\n\nUS-06 — Cambiar estado de tarea  \nCA verificado: No se puede retroceder el estado  \nTipo de test: Funcional — edge case  \nResultado esperado: 400 o 422 con mensaje descriptivo\n\nUS-06 — Cambiar estado de tarea  \nCA verificado: Solo se permiten valores válidos del enum de estados  \nTipo de test: Funcional — edge case  \nResultado esperado: 400 Bad Request"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Comentarios",
+      "item": []
+    }
+  ]
+}
