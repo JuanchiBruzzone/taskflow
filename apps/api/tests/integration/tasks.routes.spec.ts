@@ -8,7 +8,7 @@ vi.mock('../../src/services/task.service', async (importOriginal) => {
         ...actual,
         TaskService: vi.fn().mockImplementation(() => ({
             createTask: vi.fn(),
-            getTasksByProject: vi.fn(),
+            getTasks: vi.fn(),
         })),
     }
 })
@@ -82,6 +82,52 @@ describe('POST /projects/:projectId/tasks', () => {
         const res = await request(app)
             .post('/projects/proj-1/tasks')
             .send({ title: 'Implementar Login', priority: 'HIGH' })
+
+        expect(res.status).toBe(401)
+    })
+})
+
+describe('GET /projects/:projectId/tasks', () => {
+    it('200 — retorna array de tareas del proyecto (al menos 2 tareas)', async () => {
+        ;(taskServiceMock as any).getTasks.mockResolvedValue([
+            {
+                id: 'task-1',
+                title: 'Tarea Uno',
+                status: 'TODO',
+                priority: 'LOW',
+                projectId: 'proj-1',
+                assignedTo: null,
+                description: null,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                assignee: null,
+            },
+            {
+                id: 'task-2',
+                title: 'Tarea Dos',
+                status: 'IN_PROGRESS',
+                priority: 'MEDIUM',
+                projectId: 'proj-1',
+                assignedTo: null,
+                description: null,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+                assignee: null,
+            },
+        ])
+
+        const res = await request(app)
+            .get('/projects/proj-1/tasks')
+            .set('Authorization', VALID_TOKEN)
+
+        expect(res.status).toBe(200)
+        expect(Array.isArray(res.body)).toBe(true)
+        expect(res.body.length).toBeGreaterThanOrEqual(2)
+        expect(res.body[0].id).toBeDefined()
+    })
+
+    it('401 — sin token', async () => {
+        const res = await request(app).get('/projects/proj-1/tasks')
 
         expect(res.status).toBe(401)
     })
