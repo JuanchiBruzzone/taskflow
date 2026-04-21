@@ -191,7 +191,7 @@ jobs:
         run: npx prisma generate --schema=src/prisma/schema.prisma
         working-directory: apps/api
 
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps chromium webkit
 
       - name: Run Prisma migrations + seed
         run: |
