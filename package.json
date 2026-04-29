@@ -18,7 +18,7 @@
     "build:web": "npm run build --workspace=apps/web"
   },
   "devDependencies": {
-    "@cucumber/cucumber": "^10.8.0",
+    "@cucumber/cucumber": "^12.8.2",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.44.0",
     "@typescript-eslint/eslint-plugin": "^8.57.2",
