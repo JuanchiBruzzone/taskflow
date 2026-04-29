@@ -1,0 +1,151 @@
+name: taskflow
+
+x-node-service: &node-service
+  image: node:20-bookworm
+  working_dir: /workspace
+  volumes:
+    - .:/workspace
+    - root_node_modules:/workspace/node_modules
+    - api_node_modules:/workspace/apps/api/node_modules
+    - web_node_modules:/workspace/apps/web/node_modules
+    - bdd_node_modules:/workspace/taskflow-bdd/node_modules
+  environment:
+    NODE_ENV: development
+    DATABASE_URL: postgresql://postgres:postgres@postgres:5432/taskflow_dev?schema=public
+    JWT_SECRET: taskflow-dev-secret-docker
+    PORT: 3001
+    POSTGRES_HOST: postgres
+    POSTGRES_PORT: 5432
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+    POSTGRES_DB: taskflow_dev
+    TASKFLOW_URL: http://api:3001
+    BASE_URL: http://web:5173
+    VITE_API_URL: http://localhost:3001
+    CHOKIDAR_USEPOLLING: "true"
+    WATCHPACK_POLLING: "true"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: taskflow_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d taskflow_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  setup:
+    <<: *node-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -lc "
+        npm install &&
+        npm exec --workspace=apps/api prisma generate -- --schema=src/prisma/schema.prisma &&
+        npm exec --workspace=apps/api prisma migrate deploy -- --schema=src/prisma/schema.prisma &&
+        if node -e 'const { PrismaClient } = require(\"@prisma/client\"); const prisma = new PrismaClient(); prisma.user.count().then((count) => process.exit(count > 0 ? 0 : 1)).finally(() => prisma[String.fromCharCode(36) + \"disconnect\"]())'; then
+          echo 'Database already has users; skipping seed.';
+        else
+          npm exec --workspace=apps/api prisma db seed -- --schema=src/prisma/schema.prisma;
+        fi
+      "
+
+  api:
+    <<: *node-service
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      setup:
+        condition: service_completed_successfully
+    ports:
+      - "3001:3001"
+    command: npm run dev --workspace=apps/api
+
+  web:
+    <<: *node-service
+    restart: unless-stopped
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+      api:
+        condition: service_started
+    ports:
+      - "5173:5173"
+    command: npm run dev --workspace=apps/web -- --host 0.0.0.0
+
+  lint:
+    <<: *node-service
+    profiles: ["tools"]
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+    command: npm run lint
+
+  typecheck:
+    <<: *node-service
+    profiles: ["tools"]
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+    command: npm run typecheck
+
+  test-unit:
+    <<: *node-service
+    profiles: ["tools"]
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+    command: npm run test:unit
+
+  test-integration:
+    <<: *node-service
+    profiles: ["tools"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      setup:
+        condition: service_completed_successfully
+    command: npm run test:integration
+
+  test-bdd:
+    <<: *node-service
+    profiles: ["tools"]
+    depends_on:
+      api:
+        condition: service_started
+    command: >
+      sh -lc "
+        npm install --prefix taskflow-bdd &&
+        npm test --prefix taskflow-bdd
+      "
+
+  performance:
+    image: grafana/k6:0.51.0
+    profiles: ["tools"]
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    environment:
+      BASE_URL: http://api:3001
+    depends_on:
+      api:
+        condition: service_started
+    command: run performance/scenarios/api-load.k6.js
+
+volumes:
+  postgres_data:
+  root_node_modules:
+  api_node_modules:
+  web_node_modules:
+  bdd_node_modules:
