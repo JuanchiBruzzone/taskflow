@@ -8,10 +8,12 @@
     "start": "node dist/index.js",
     "lint": "eslint src tests",
     "typecheck": "tsc --noEmit",
+    "test": "node --env-file=.env.test ../../node_modules/vitest/vitest.mjs run",
     "test:unit": "vitest run tests/unit --coverage",
-    "test:integration": "vitest run tests/integration",
+    "test:integration": "node --env-file=.env.test ../../node_modules/vitest/vitest.mjs run tests/integration",
     "test:bdd": "cucumber-js",
-    "test:watch": "vitest"
+    "test:watch": "node --env-file=.env.test ../../node_modules/vitest/vitest.mjs",
+    "db:migrate:test": "node --env-file=.env.test ../../node_modules/prisma/build/index.js migrate deploy --schema=src/prisma/schema.prisma"
   },
   "dependencies": {
     "@prisma/client": "^5.14.0",
