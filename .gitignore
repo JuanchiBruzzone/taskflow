@@ -27,6 +27,7 @@ lerna-debug.log*
 .env.*
 !.env.example
 !.env.sample
+!.env.test
 
 # Runtime and cache files
 *.pid

@@ -13,6 +13,8 @@ Servicios:
 - Frontend: http://localhost:5173
 - API: http://localhost:3001
 - PostgreSQL: `localhost:5432`
+- Base de desarrollo: `taskflow_dev`
+- Base de tests: `taskflow_test`
 
 El servicio `setup` corre antes que la app:
 
@@ -39,6 +41,8 @@ El Compose define estas variables para los servicios Node:
 | `VITE_API_URL` | `http://localhost:3001` |
 | `TASKFLOW_URL` | `http://api:3001` |
 | `BASE_URL` | `http://web:5173` |
+
+`apps/api/.env.test` usa `taskflow_test` para los integration tests.
 
 ## Usuarios de prueba
 
