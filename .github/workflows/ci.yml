@@ -113,28 +113,8 @@ jobs:
         run: npx prisma generate --schema=src/prisma/schema.prisma
         working-directory: apps/api
 
-      - name: Ensure psql client available
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
-
-      - name: Wait for Postgres to be ready
-        run: |
-          for i in $(seq 1 60); do
-            pg_isready -h localhost -p 5432 && break
-            echo "waiting for postgres... ($i)"
-            sleep 1
-          done
-
-      - name: Reset DB schema (CI) with retries
-        run: |
-          for attempt in 1 2 3; do
-            echo "migrate reset attempt $attempt"
-            if npx prisma migrate reset --force --skip-seed --schema=src/prisma/schema.prisma; then
-              break
-            fi
-            sleep 2
-          done
+      - name: Run Prisma migrations (CI)
+        run: npx prisma migrate deploy --schema=src/prisma/schema.prisma
         working-directory: apps/api
 
       - name: Run integration tests
