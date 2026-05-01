@@ -60,6 +60,14 @@ jobs:
       - name: Run unit tests with coverage
         run: npm run test:unit
         working-directory: apps/api
+      - name: Upload unit test artifacts (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-artifacts
+          path: |
+            apps/api/coverage
+            apps/api/test-results
 
       - name: Upload coverage report
         uses: codecov/codecov-action@v4
@@ -105,13 +113,22 @@ jobs:
         run: npx prisma generate --schema=src/prisma/schema.prisma
         working-directory: apps/api
 
-      - name: Run Prisma migrations
-        run: npx prisma migrate deploy --schema=src/prisma/schema.prisma
+      - name: Reset DB schema (CI)
+        run: npx prisma migrate reset --force --skip-seed --schema=src/prisma/schema.prisma
         working-directory: apps/api
 
       - name: Run integration tests
         run: npm run test:integration
         working-directory: apps/api
+
+      - name: Upload integration test artifacts (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-artifacts
+          path: |
+            apps/api/test-results
+            apps/api/logs
 
   bdd-tests:
     name: 🥒 BDD / Cucumber Tests
