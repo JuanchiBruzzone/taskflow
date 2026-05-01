@@ -8,11 +8,11 @@
     "start": "node dist/index.js",
     "lint": "eslint src tests",
     "typecheck": "tsc --noEmit",
-  "test": "node --env-file=.env.test npx vitest run",
+  "test": "node --env-file=.env.test ./node_modules/.bin/vitest run",
     "test:unit": "vitest run tests/unit --coverage",
-  "test:integration": "node --env-file=.env.test npx vitest run tests/integration",
+  "test:integration": "node --env-file=.env.test ./node_modules/.bin/vitest run tests/integration",
     "test:bdd": "cucumber-js",
-  "test:watch": "node --env-file=.env.test npx vitest",
+  "test:watch": "node --env-file=.env.test ./node_modules/.bin/vitest",
   "db:migrate:test": "node --env-file=.env.test npx prisma migrate deploy --schema=src/prisma/schema.prisma"
   },
   "dependencies": {
