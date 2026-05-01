@@ -6,10 +6,9 @@ vi.mock('../../src/services/task.service', async (importOriginal) => {
     const actual = await importOriginal<typeof import('../../src/services/task.service')>()
     return {
         ...actual,
-        TaskService: vi.fn().mockImplementation(() => ({
-            createTask: vi.fn(),
-            getTasks: vi.fn(),
-        })),
+        TaskService: vi.fn(function() {
+            return { createTask: vi.fn(), getTasks: vi.fn() }
+        }),
     }
 })
 
@@ -17,9 +16,9 @@ vi.mock('../../src/services/auth.service', async (importOriginal) => {
     const actual = await importOriginal<typeof import('../../src/services/auth.service')>()
     return {
         ...actual,
-        AuthService: vi.fn().mockImplementation(() => ({
-            verifyToken: vi.fn().mockReturnValue({ id: 'user-1', email: 'ana@test.com' }),
-        })),
+        AuthService: vi.fn(function() {
+            return { verifyToken: vi.fn().mockReturnValue({ id: 'user-1', email: 'ana@test.com' }) }
+        }),
     }
 })
 
