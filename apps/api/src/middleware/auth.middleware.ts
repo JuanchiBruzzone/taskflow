@@ -1,9 +1,17 @@
 import { Request, Response, NextFunction } from 'express'
-import { AuthService } from '../services/auth.service'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
-const authService = new AuthService(prisma)
+// Defer requiring AuthService and PrismaClient so tests can mock the service module
+// by replacing the exported symbols. Constructing the real AuthService at module
+// load time prevents vi.mock from taking effect in tests.
+function getAuthService() {
+  // require here so vitest's module mocking can replace ../services/auth.service
+  // with a mock implementation during tests.
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { AuthService } = require('../services/auth.service')
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { PrismaClient } = require('@prisma/client')
+  const prisma = new PrismaClient()
+  return new AuthService(prisma)
+}
 
 export interface AuthRequest extends Request {
   userId?: string
@@ -17,6 +25,7 @@ export function requireAuth(req: AuthRequest, res: Response, next: NextFunction)
 
   const token = authHeader.slice(7)
   try {
+    const authService = getAuthService()
     const payload = authService.verifyToken(token)
     req.userId = payload.userId
     next()
