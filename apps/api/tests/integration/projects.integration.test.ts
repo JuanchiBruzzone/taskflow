@@ -94,4 +94,29 @@ describe('Proyectos API - US-03 y US-04', () => {
     expect(Array.isArray(list.body)).toBe(true)
     expect(list.body).toHaveLength(0)
   })
+
+  it('CA-15 — solo proyectos donde el usuario es owner o miembro (segundo usuario no ve proyectos)', async () => {
+    // Crear proyecto con el primer usuario
+    await request(app)
+      .post('/projects')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Proyecto de tester1' })
+
+    // Registrar un segundo usuario
+    const res2 = await request(app)
+      .post('/auth/register')
+      .send({ email: 'otro2@test.com', password: 'Test1234!', name: 'Otro2' })
+
+    const token2 = res2.body.token
+
+    // El segundo usuario lista SUS proyectos
+    const list2 = await request(app)
+      .get('/projects')
+      .set('Authorization', `Bearer ${token2}`)
+
+    expect(list2.status).toBe(200)
+    expect(Array.isArray(list2.body)).toBe(true)
+    // El segundo usuario no debe ver los proyectos del primero
+    expect(list2.body).toHaveLength(0)
+  })
 })
