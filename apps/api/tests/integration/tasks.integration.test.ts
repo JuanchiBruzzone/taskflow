@@ -20,6 +20,7 @@ describe('Tareas API - US-05', () => {
 
   beforeEach(async () => {
     await prisma.task.deleteMany()
+    await prisma.projectMember.deleteMany()
     await prisma.project.deleteMany()
 
     const res = await request(app)
@@ -31,7 +32,10 @@ describe('Tareas API - US-05', () => {
   })
 
   afterAll(async () => {
+    await prisma.statusHistory.deleteMany()
+    await prisma.comment.deleteMany()
     await prisma.task.deleteMany()
+    await prisma.projectMember.deleteMany()
     await prisma.project.deleteMany()
     await prisma.user.deleteMany()
     await prisma.$disconnect()

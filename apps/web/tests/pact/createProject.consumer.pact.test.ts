@@ -17,7 +17,7 @@ describe('Consumer Pact - createProject', () => {
       .addInteraction()
       .given('usuario autenticado con token válido')
       .uponReceiving('una petición para crear proyecto TaskFlow MVP')
-      .withRequest('POST', '/api/projects', (builder) => {
+      .withRequest('POST', '/projects', (builder) => {
         builder.headers({ 'Content-Type': 'application/json', Authorization: 'Bearer token-de-test' })
         builder.jsonBody({
           name: string('TaskFlow MVP'),
@@ -27,9 +27,9 @@ describe('Consumer Pact - createProject', () => {
       })
       .willRespondWith(201, (builder) => {
         builder.jsonBody({
-          id: string('proj-1'),
+          id: string('some-project-id'),
           name: string('TaskFlow MVP'),
-          ownerId: string('user-1'),
+          ownerId: string('some-user-id'),
         })
         return builder
       })

@@ -1,5 +1,5 @@
 export async function createProject(baseUrl: string, name: string, description: string, token: string): Promise<{ id: string; name: string; ownerId: string }> {
-  const res = await fetch(`${baseUrl}/api/projects`, {
+  const res = await fetch(`${baseUrl}/projects`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
