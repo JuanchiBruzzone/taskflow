@@ -1,4 +1,4 @@
-import { Given, When, Then, Before, After, setDefaultTimeout } from '@cucumber/cucumber'
+import { Given, When, Then, After, setDefaultTimeout } from '@cucumber/cucumber'
 import assert from 'assert'
 import request from 'supertest'
 import { PrismaClient } from '@prisma/client'
