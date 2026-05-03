@@ -107,6 +107,24 @@ When(
   },
 )
 
+When(
+  'el usuario se registra con email {string} y password {string}',
+  async (email: string, password: string) => {
+    response = await request(app)
+      .post('/auth/register')
+      .send({ email, password, name: 'BDD User' })
+  },
+)
+
+When(
+  'el usuario intenta iniciar sesión con email {string} y password {string}',
+  async (email: string, password: string) => {
+    response = await request(app)
+      .post('/auth/login')
+      .send({ email, password })
+  },
+)
+
 // ── Then ──────────────────────────────────────────────────
 
 Then('la respuesta tiene status {int}', (expectedStatus: number) => {
