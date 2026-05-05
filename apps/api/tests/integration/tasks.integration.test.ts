@@ -60,4 +60,12 @@ describe('Tareas API - US-05', () => {
 
     expect(res.status).toBe(400)
   })
+
+  it('rechaza crear tarea sin token con 401 (@US-05)', async () => {
+    const res = await request(app)
+      .post(`/projects/${projectId}/tasks`)
+      .send({ title: 'Implementar login', priority: 'HIGH', status: 'TODO' })
+
+    expect(res.status).toBe(401)
+  })
 })

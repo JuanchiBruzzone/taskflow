@@ -95,6 +95,20 @@ describe('Proyectos API - US-03 y US-04', () => {
     expect(list.body).toHaveLength(0)
   })
 
+  it('rechaza listado de proyectos con token invalido con 401 (@US-04)', async () => {
+    const res = await request(app)
+      .get('/projects')
+      .set('Authorization', 'Bearer token-invalido')
+
+    expect(res.status).toBe(401)
+  })
+
+  it('rechaza listado de proyectos sin token con 401 (@US-04)', async () => {
+    const res = await request(app).get('/projects')
+
+    expect(res.status).toBe(401)
+  })
+
   it('CA-15 — solo proyectos donde el usuario es owner o miembro (segundo usuario no ve proyectos)', async () => {
     // Crear proyecto con el primer usuario
     await request(app)
