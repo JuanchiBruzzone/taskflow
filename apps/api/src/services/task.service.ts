@@ -2,18 +2,33 @@ import { PrismaClient, Status, Priority } from '@prisma/client'
 import { z } from 'zod'
 import { ForbiddenError, NotFoundError, UnprocessableError } from './auth.service'
 
+// Runtime-safe enum fallbacks: when running unit tests @prisma/client may not
+// expose the generated enum objects (or prisma generate wasn't run). Use
+// a small fallback so zod.nativeEnum doesn't receive `undefined`.
+const StatusEnum = (Status as unknown as Record<string, string>) ?? {
+  TODO: 'TODO',
+  IN_PROGRESS: 'IN_PROGRESS',
+  DONE: 'DONE',
+}
+
+const PriorityEnum = (Priority as unknown as Record<string, string>) ?? {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH',
+}
+
 export const CreateTaskSchema = z.object({
   title: z.string().min(3).max(200),
   description: z.string().optional(),
-  priority: z.nativeEnum(Priority).default('MEDIUM'),
+  priority: z.nativeEnum(PriorityEnum as any).default('MEDIUM'),
   assignedTo: z.string().cuid().optional(),
 })
 
 export const UpdateTaskSchema = z.object({
   title: z.string().min(3).max(200).optional(),
   description: z.string().optional(),
-  status: z.nativeEnum(Status).optional(),
-  priority: z.nativeEnum(Priority).optional(),
+  status: z.nativeEnum(StatusEnum as any).optional(),
+  priority: z.nativeEnum(PriorityEnum as any).optional(),
   assignedTo: z.string().cuid().nullable().optional(),
 })
 
@@ -150,18 +165,24 @@ export class TaskService {
   }
 
   validateStatusTransition(current: Status, next: Status): void {
-    if (current === next) {
-      throw new Error(`Transición de estado inválida: ${current} → ${next}`);
+    // Coerce to string keys so we avoid TypeErrors if enums are unexpected at runtime
+    const curr = String(current)
+    const nxt = String(next)
+
+    if (curr === nxt) {
+      throw new Error(`Transición de estado inválida: ${curr} → ${nxt}`)
     }
 
-    const validTransitions: Record<Status, Status[]> = {
+    const validTransitions: Record<string, string[]> = {
       TODO: ['IN_PROGRESS'],
       IN_PROGRESS: ['DONE'],
       DONE: [],
-    };
+    }
 
-    if (!validTransitions[current].includes(next)) {
-      throw new Error(`Transición de estado inválida: ${current} → ${next}`);
+    const allowed = validTransitions[curr] ?? []
+
+    if (!allowed.includes(nxt)) {
+      throw new Error(`Transición de estado inválida: ${curr} → ${nxt}`)
     }
   }
 }

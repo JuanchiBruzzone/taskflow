@@ -1,7 +1,9 @@
 import axios from 'axios'
 import type { Project, Task, Comment } from '../types'
 
-const api = axios.create({ baseURL: 'http://localhost:3001' })
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:3001',
+})
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')

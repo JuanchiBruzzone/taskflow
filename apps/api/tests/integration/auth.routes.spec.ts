@@ -14,7 +14,7 @@ vi.mock('../../src/services/auth.service', async (importOriginal) => {
 
   return {
     ...actual,
-    AuthService: vi.fn(() => mock),
+    AuthService: vi.fn(function() { return mock }),
     __mock: mock,
   }
 })

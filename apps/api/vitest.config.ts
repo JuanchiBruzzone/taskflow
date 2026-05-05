@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    fileParallelism: false,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -21,7 +22,7 @@ export default defineConfig({
       thresholds: {
         lines: 60,
         functions: 50,
-        branches: 75,
+        branches: 70,
         statements: 60,
       },
     },

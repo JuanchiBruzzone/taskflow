@@ -18,13 +18,17 @@
     "build:web": "npm run build --workspace=apps/web"
   },
   "devDependencies": {
-    "@cucumber/cucumber": "^10.8.0",
+    "@cucumber/cucumber": "^12.8.2",
     "@eslint/js": "^10.0.1",
+    "@pact-foundation/pact": "^16.3.1",
     "@playwright/test": "^1.44.0",
     "@typescript-eslint/eslint-plugin": "^8.57.2",
     "@typescript-eslint/parser": "^8.57.2",
     "concurrently": "^8.2.2",
     "globals": "^17.4.0",
     "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "vite": "8.0.10"
   }
 }
