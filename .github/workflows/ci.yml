@@ -180,7 +180,6 @@ jobs:
     name: 🎭 E2E Tests (Playwright)
     runs-on: ubuntu-latest
     needs: pre
-    if: github.event_name == 'pull_request'
 
     services:
       postgres:
@@ -268,7 +267,7 @@ jobs:
             fi
           done
 
-          if [ "$E2E_RESULT" != "success" ] && [ "$E2E_RESULT" != "skipped" ]; then
+          if [ "$E2E_RESULT" != "success" ]; then
             echo "E2E job failed."
             exit 1
           fi

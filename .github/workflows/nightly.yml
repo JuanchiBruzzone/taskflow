@@ -6,44 +6,155 @@ on:
   workflow_dispatch:
 
 env:
-  BASE_URL: ${{ secrets.STAGING_URL }}
+  NODE_VERSION: '20'
+  JWT_SECRET: test-secret-for-nightly
+  BASE_URL: http://localhost:3001
 
 jobs:
   pre:
     name: PRE
     runs-on: ubuntu-latest
     steps:
-      - name: Validate configuration
-        run: |
-          if [ -z "$BASE_URL" ]; then
-            echo "STAGING_URL secret is required."
-            exit 1
-          fi
-          echo "Nightly performance suite starting for $BASE_URL"
+      - name: Start nightly performance suite
+        run: echo "Nightly performance suite starting against a local API per job."
 
   load:
     name: LOAD
     runs-on: ubuntu-latest
     needs: pre
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: taskflow
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: taskflow_perf_load
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://taskflow:testpassword@localhost:5432/taskflow_perf_load
+
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate --schema=src/prisma/schema.prisma
+        working-directory: apps/api
+
+      - name: Run Prisma migrations + seed
+        run: |
+          npx prisma migrate deploy --schema=src/prisma/schema.prisma
+          npx prisma db seed --schema=src/prisma/schema.prisma
+        working-directory: apps/api
+
+      - name: Start API
+        run: |
+          npm run dev --workspace=apps/api > api-load.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://localhost:3001/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "API did not become healthy."
+          cat api-load.log
+          exit 1
 
       - uses: grafana/setup-k6-action@v1
 
       - name: Run load test
         run: k6 run performance/scenarios/api-load.k6.js
 
+      - name: Upload API log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-load-api-log
+          path: api-load.log
+          retention-days: 7
+
   stress:
     name: STRESS
     runs-on: ubuntu-latest
     needs: pre
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: taskflow
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: taskflow_perf_stress
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://taskflow:testpassword@localhost:5432/taskflow_perf_stress
+
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate --schema=src/prisma/schema.prisma
+        working-directory: apps/api
+
+      - name: Run Prisma migrations + seed
+        run: |
+          npx prisma migrate deploy --schema=src/prisma/schema.prisma
+          npx prisma db seed --schema=src/prisma/schema.prisma
+        working-directory: apps/api
+
+      - name: Start API
+        run: |
+          npm run dev --workspace=apps/api > api-stress.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://localhost:3001/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "API did not become healthy."
+          cat api-stress.log
+          exit 1
 
       - uses: grafana/setup-k6-action@v1
 
       - name: Run stress test
         run: k6 run performance/scenarios/api-load.k6.js --env SCENARIO=stress
+
+      - name: Upload API log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-stress-api-log
+          path: api-stress.log
+          retention-days: 7
 
   post:
     name: POST
@@ -67,3 +178,13 @@ jobs:
           fi
 
           echo "Nightly performance suite completed successfully."
+
+permissions: {}
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: nightly-${{ github.ref }}
+  cancel-in-progress: true
