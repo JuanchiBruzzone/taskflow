@@ -1,22 +1,69 @@
-name: Nightly — Performance Tests
+name: Nightly - Performance Tests
 
 on:
   schedule:
     - cron: '0 2 * * *'
   workflow_dispatch:
 
+env:
+  BASE_URL: ${{ secrets.STAGING_URL }}
+
 jobs:
-  performance:
-    name: 📈 k6 Load Tests
+  pre:
+    name: PRE
     runs-on: ubuntu-latest
     steps:
+      - name: Validate configuration
+        run: |
+          if [ -z "$BASE_URL" ]; then
+            echo "STAGING_URL secret is required."
+            exit 1
+          fi
+          echo "Nightly performance suite starting for $BASE_URL"
+
+  load:
+    name: LOAD
+    runs-on: ubuntu-latest
+    needs: pre
+    steps:
       - uses: actions/checkout@v4
+
       - uses: grafana/setup-k6-action@v1
+
       - name: Run load test
         run: k6 run performance/scenarios/api-load.k6.js
-        env:
-          BASE_URL: ${{ secrets.STAGING_URL }}
+
+  stress:
+    name: STRESS
+    runs-on: ubuntu-latest
+    needs: pre
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: grafana/setup-k6-action@v1
+
       - name: Run stress test
         run: k6 run performance/scenarios/api-load.k6.js --env SCENARIO=stress
+
+  post:
+    name: POST
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - load
+      - stress
+    steps:
+      - name: Check nightly results
         env:
-          BASE_URL: ${{ secrets.STAGING_URL }}
+          LOAD_RESULT: ${{ needs.load.result }}
+          STRESS_RESULT: ${{ needs.stress.result }}
+        run: |
+          echo "load=$LOAD_RESULT"
+          echo "stress=$STRESS_RESULT"
+
+          if [ "$LOAD_RESULT" != "success" ] || [ "$STRESS_RESULT" != "success" ]; then
+            echo "Nightly performance suite failed."
+            exit 1
+          fi
+
+          echo "Nightly performance suite completed successfully."

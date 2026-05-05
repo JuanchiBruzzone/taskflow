@@ -41,6 +41,14 @@ export default [
     },
   },
   {
+    files: ['performance/**/*.js'],
+    languageOptions: {
+      globals: {
+        __ENV: 'readonly',
+      },
+    },
+  },
+  {
     ignores: ['dist/**', 'node_modules/**', 'coverage/**'],
   },
 ]

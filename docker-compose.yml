@@ -144,6 +144,26 @@ services:
         condition: service_started
     command: run performance/scenarios/api-load.k6.js
 
+  nightly-load:
+    image: grafana/k6:0.51.0
+    profiles: ["nightly"]
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    environment:
+      BASE_URL: ${BASE_URL:-http://api:3001}
+    command: run performance/scenarios/api-load.k6.js
+
+  nightly-stress:
+    image: grafana/k6:0.51.0
+    profiles: ["nightly"]
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+    environment:
+      BASE_URL: ${BASE_URL:-http://api:3001}
+    command: run performance/scenarios/api-load.k6.js --env SCENARIO=stress
+
 volumes:
   postgres_data:
   root_node_modules:

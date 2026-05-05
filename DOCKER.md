@@ -78,7 +78,57 @@ docker compose run --rm test-unit
 docker compose run --rm test-integration
 docker compose run --rm test-bdd
 docker compose run --rm performance
+docker compose --profile nightly run --rm nightly-load
+docker compose --profile nightly run --rm nightly-stress
 ```
+
+## Workflow nightly en Docker
+
+El workflow `.github/workflows/nightly.yml` corre pruebas de performance con k6:
+
+- load test: `k6 run performance/scenarios/api-load.k6.js`
+- stress test: `k6 run performance/scenarios/api-load.k6.js --env SCENARIO=stress`
+
+En Docker estan modeladas como dos servicios con el profile `nightly`.
+
+El escenario prepara sus propios datos antes de medir: registra un usuario, crea un proyecto y crea una tarea. Durante la carga no vuelve a ejecutar login en cada iteracion; reutiliza el token generado en setup para medir los endpoints autenticados sin convertir bcrypt en el cuello de botella principal.
+
+### Contra la API local de Docker
+
+Primero levanta la app:
+
+```bash
+docker compose up -d postgres
+docker compose run --rm setup
+docker compose up -d api
+```
+
+Despues corre los dos pasos del nightly:
+
+```bash
+docker compose --profile nightly run --rm nightly-load
+docker compose --profile nightly run --rm nightly-stress
+```
+
+### Contra una URL externa
+
+El workflow usa `STAGING_URL` como secreto de GitHub. En Docker podes pasar el equivalente con `BASE_URL`:
+
+```bash
+BASE_URL=https://tu-staging.example.com docker compose --profile nightly run --rm nightly-load
+BASE_URL=https://tu-staging.example.com docker compose --profile nightly run --rm nightly-stress
+```
+
+En PowerShell:
+
+```powershell
+$env:BASE_URL = "https://tu-staging.example.com"
+docker compose --profile nightly run --rm nightly-load
+docker compose --profile nightly run --rm nightly-stress
+Remove-Item Env:\BASE_URL
+```
+
+Si no pasas `BASE_URL`, Docker usa `http://api:3001`, que es la API dentro de la red de Compose.
 
 ## Probar Parte 1
 
