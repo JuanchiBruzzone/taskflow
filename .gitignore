@@ -64,3 +64,4 @@ Desktop.ini
 
 # Local assistant/tooling state
 .claude/
+apk/*.apk

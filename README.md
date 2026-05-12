@@ -5,6 +5,7 @@ Equipo:
 - Juan Ignacio Bruzzone
 - Giuliana Bordon Castro
 - Felipe Sere
+- Agustin Bidart
 
 Workflow habilitado.
 

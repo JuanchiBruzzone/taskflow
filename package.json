@@ -15,7 +15,8 @@
     "test:e2e": "npx playwright test",
     "test:all": "npm run test:unit && npm run test:integration && npm run test:bdd && npm run test:e2e",
     "dev:web": "npm run dev --workspace=apps/web",
-    "build:web": "npm run build --workspace=apps/web"
+    "build:web": "npm run build --workspace=apps/web",
+    "test:mobile": "cd mobile && npx wdio run wdio.conf.ts"
   },
   "devDependencies": {
     "@cucumber/cucumber": "^12.8.2",
