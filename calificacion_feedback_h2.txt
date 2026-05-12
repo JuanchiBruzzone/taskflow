@@ -1,0 +1,26 @@
+Lo que salió bien
+
+  Bloque A — tasks.routes.spec.ts 
+  - Archivo creado correctamente en apps/api/tests/integration/
+  - Ambos servicios mockeados: TaskService y AuthService
+  - beforeAll para inicializar taskServiceMock (tip del profesor aplicado)
+  - POST: tests 201, 400 y 401 presentes y bien implementados
+  - GET: test 200 con array de ≥ 2 tareas mockeadas y test 401 presentes
+
+  Bloque B — POM 
+  - Estructura de carpetas e2e/playwright/pages/ y e2e/playwright/tests/ correcta
+  - LoginPage.ts: métodos goto, register, login, expectRedirectToLogin, expectRedirectToProjects, manejo de errores — todo con getByTestId en campos críticos (tip #1 cumplido)
+  - ProjectListPage.ts: createProject, expectProjectVisible, expectProjectCount, expectFormVisible
+  - projects.e2e.spec.ts: flujo completo registro → login → crear proyecto → verificar visibilidad, sin lógica de selectores en el spec (tip #2 cumplido)
+  - Helper uniqueTestEmail con parallelIndex para aislamiento entre workers (tip #5 cumplido)
+
+
+Para arreglar
+  
+  1. testDir incorrecto — está en ./e2e/playwright/tests, la rúbrica pide ./e2e
+  2. Type cast (taskServiceMock as any).getTasks — sugiere que getTasks no está declarado en la interfaz TaskServiceType; el tipado del mock queda 
+     incompleto.
+  3. README no menciona Hito 2 — tiene instrucciones generales pero no documenta el estado de los entregables de esta entrega
+
+
+  *** CALIFICACIÓN: 96/100 ***
