@@ -77,7 +77,6 @@ npm run test:all          # todos en orden
 # Performance (requiere k6 instalado: brew install k6)
 k6 run performance/scenarios/api-load.k6.js
 ```
-
 ---
 
 ## Stack
@@ -171,6 +170,54 @@ Buscá los comentarios `// TODO (estudiante):` en esos archivos.
 
 ---
 
+## Hito 4 — Performance (k6) — Pasos rápidos
+
+Pequeña guía para ejecutar el smoke test/local k6 tal como se pide en el hito 4.
+
+- Asegurate de levantar PostgreSQL y la API. Opciones:
+
+  - Docker Compose (recomendado):
+
+    ```bash
+    docker compose up -d postgres
+    docker compose run --rm setup    # instala deps, genera prisma, aplica migraciones y seed
+    ```
+
+  - Local (Homebrew / sistema): arrancá Postgres y luego ejecutá:
+
+    ```bash
+    bash setup.sh
+    ```
+- Asegurate de que la API pueda conectar a la base de datos (Postgres). Si usás Docker
+  Compose el servicio `setup` se encarga de generar migraciones y cargar el seed.
+
+- Levantá la API desde la raíz del repo (esto usa la config del workspace):
+
+  ```bash
+  npm run dev
+  # La API debe responder en http://localhost:3001
+  curl -i http://localhost:3001/health
+  ```
+
+- Ejecutar el smoke test (desde la raíz del repo — importante):
+
+  ```bash
+  k6 run --env BASE_URL=http://localhost:3001 --vus 1 --duration 15s performance/scenarios/api-load.k6.js
+  ```
+
+  - Nota: ejecutar `k6` desde `apps/api` hace que el path relativo al script no se encuentre.
+
+- Qué comprobar en la salida de `k6`:
+  - `register status 201`
+  - `login status 200`
+  - `project create status 201`
+  - `task create status 201`
+  - `projects status 200`
+  - `tasks status 200`
+
+- Usuarios de seed: `alice@taskflow.dev` / `Password1`, `bob@taskflow.dev` / `Password1`.
+
+---
 ## Definition of Done
 
 Una US está DONE cuando:

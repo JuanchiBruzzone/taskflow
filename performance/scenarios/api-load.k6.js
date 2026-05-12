@@ -59,7 +59,16 @@ export function setup() {
     name: 'Perf User',
   }), { headers: { 'Content-Type': 'application/json' } })
 
-  const token = registerRes.json('token')
+  check(registerRes, { 'register status 201': (r) => r.status === 201 })
+
+  const loginRes = http.post(`${BASE_URL}/auth/login`, JSON.stringify({
+    email,
+    password: 'Password1',
+  }), { headers: { 'Content-Type': 'application/json' } })
+
+  check(loginRes, { 'login status 200': (r) => r.status === 200 })
+
+  const token = loginRes.json('token')
   const headers = {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`,
@@ -70,15 +79,19 @@ export function setup() {
     description: 'k6 nightly performance project',
   }), { headers })
 
+  check(projectRes, { 'project create status 201': (r) => r.status === 201 })
+
   const projectId = projectRes.json('id')
   if (projectId) {
-    http.post(`${BASE_URL}/projects/${projectId}/tasks`, JSON.stringify({
+    const taskRes = http.post(`${BASE_URL}/projects/${projectId}/tasks`, JSON.stringify({
       title: 'Performance baseline task',
       priority: 'HIGH',
     }), { headers })
+
+    check(taskRes, { 'task create status 201': (r) => r.status === 201 })
   }
 
-  return { projectId, token, userId: registerRes.json('user.id') }
+  return { projectId, token, userId: loginRes.json('user.id') }
 }
 
 export default function (data) {
