@@ -39,13 +39,10 @@ export class ProjectService {
   }
 
   async listProjects(userId: string) {
-    // BUG-06: when archived=false filter is missing from the query,
-    // all projects including archived ones are returned.
-    // Fix: add archived: false to the where clause.
     return this.db.project.findMany({
       where: {
         members: { some: { userId } },
-        // archived: false  <-- intentionally omitted (BUG-06)
+        archived: false,
       },
       include: {
         owner: { select: { id: true, email: true, name: true } },

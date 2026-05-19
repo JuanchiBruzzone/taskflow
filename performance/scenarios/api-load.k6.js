@@ -5,6 +5,7 @@ import { Rate, Trend } from 'k6/metrics'
 
 const errorRate = new Rate('error_rate')
 const tasksDuration = new Trend('tasks_list_duration', true)
+const listDuration = new Trend('list_duration', true)
 
 const scenarios = {
   load: {
@@ -26,6 +27,17 @@ const scenarios = {
       { duration: '10s', target: 0 },
     ],
     tags: { scenario: 'stress' },
+  },
+  // Parte 3: spike scenario — carga repentina de 200 VUs para detectar modo de falla
+  spike: {
+    executor: 'ramping-vus',
+    startVUs: 0,
+    stages: [
+      { duration: '10s', target: 200 },
+      { duration: '30s', target: 200 },
+      { duration: '10s', target: 0 },
+    ],
+    tags: { scenario: 'spike' },
   },
 }
 
@@ -100,7 +112,11 @@ export default function (data) {
     'Authorization': `Bearer ${data.token}`,
   }
 
-  const projectsRes = http.get(`${BASE_URL}/projects`, { headers })
+  const projectsRes = http.get(`${BASE_URL}/projects`, {
+    headers,
+    tags: { endpoint: 'projects' },
+  })
+  listDuration.add(projectsRes.timings.duration)
   check(projectsRes, { 'projects status 200': (r) => r.status === 200 })
   errorRate.add(projectsRes.status !== 200)
 
@@ -108,7 +124,10 @@ export default function (data) {
 
   const projectId = data.projectId || projectsRes.json('0.id')
   if (projectId) {
-    const tasksRes = http.get(`${BASE_URL}/projects/${projectId}/tasks?status=TODO`, { headers })
+    const tasksRes = http.get(`${BASE_URL}/projects/${projectId}/tasks?status=TODO`, {
+      headers,
+      tags: { endpoint: 'tasks' },
+    })
     tasksDuration.add(tasksRes.timings.duration)
     errorRate.add(tasksRes.status !== 200)
     check(tasksRes, { 'tasks status 200': (r) => r.status === 200 })
