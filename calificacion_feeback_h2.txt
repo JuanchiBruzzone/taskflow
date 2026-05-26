@@ -1,0 +1,14 @@
+Muy bien:
+- BDD completamente funcional: 10 escenarios, 51 steps, todos pasan. Steps en TypeScript con Supertest real (no mocks), limpieza de DB en After, y mensajes de assert descriptivos.
+  - Cobertura de integración sólida para US-03/04/05: projects.integration.test.ts + tasks.integration.test.ts con 10 tests de base de datos real; más 8 tests de routes con service mockeado. Total 23 tests de integración, todos pasan.
+  - TypeScript y lint limpios: tsc --noEmit sin errores, eslint con 0 errores (solo 3 warnings de any en zod interop — justificados).
+  - README de alta calidad: setup, comandos de test, stack table, estructura de carpetas, DoD checklist, roadmap de hitos. Precioso.
+
+
+Para arreglar:
+- Escenarios BDD de tasks son mínimos: tasks.feature solo cubre HIGH válido e inválido (2 escenarios). Falta: "sin token devuelve 401" y "la tarea se crea con status TODO" — dos casos obvios.
+  - taskflow-bdd/ desconectado: El directorio contiene un segundo stack BDD (features + steps propios para US-05/US-06) pero NO está conectado al test:bdd ni a ningún script. Es trabajo que no cuenta.
+  - 3 warnings @typescript-eslint/no-explicit-any en task.service.ts (líneas 23, 30, 31) — el any en el cast de Prisma enum es un workaround válido, pero debería documentarse con // eslint-disable-next-line y justificación.
+
+
+CALIFICACIóN: 91/100
