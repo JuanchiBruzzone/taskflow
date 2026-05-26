@@ -1,5 +1,7 @@
 # TaskFlow 🗂️
 
+![CI](https://github.com/JuanchiBruzzone/taskflow/actions/workflows/ci.yml/badge.svg)
+
 Equipo:
 
 - Juan Ignacio Bruzzone
