@@ -3,14 +3,12 @@
   "version": "1.0.0",
   "description": "BDD tests para TaskFlow - Clase 2",
   "scripts": {
-    "test": "cucumber-js",
     "test:auth": "cucumber-js features/auth.feature",
     "test:projects": "cucumber-js features/projects.feature",
     "test:tasks": "cucumber-js features/tasks.feature"
   },
   "dependencies": {},
   "devDependencies": {
-    "@cucumber/cucumber": "^10.0.0",
     "chai": "^4.3.0",
     "axios": "^1.6.0"
   }

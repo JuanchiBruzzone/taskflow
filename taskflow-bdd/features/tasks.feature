@@ -37,9 +37,26 @@ Feature: Gestión de tareas en el tablero
     Then la respuesta tiene código de estado 200
     And la tarea está asignada a "dev@test.com"
 
+  Scenario: Crear tarea con prioridad inválida devuelve 400
+    When el miembro crea una tarea con:
+      | title    | Tarea mala |
+      | priority | ULTRA      |
+    Then la respuesta tiene código de estado 400
+
   Scenario: No se puede crear tarea sin título
     When el miembro crea una tarea con:
       | title    |               |
       | priority | medium        |
     Then la respuesta tiene código de estado 400
     And el cuerpo contiene "message" con valor "El título de la tarea es requerido"
+
+  Scenario: Crear tarea sin token devuelve 401
+    When un usuario sin token intenta crear una tarea con título "Tarea sin auth"
+    Then la respuesta tiene código de estado 401
+
+  Scenario: La tarea creada tiene status TODO
+    When el miembro crea una tarea con:
+      | title    | Tarea nueva |
+      | priority | medium      |
+    Then la respuesta tiene código de estado 201
+    And el estado de la tarea es "todo"

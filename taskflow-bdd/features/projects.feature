@@ -43,3 +43,15 @@ Feature: Gestión de proyectos
     When "invitado@test.com" intenta crear una tarea en el proyecto
     Then la respuesta tiene código de estado 403
     And el cuerpo contiene "message" con valor "No tenés permisos para crear tareas"
+
+  Scenario: Crear proyecto sin token devuelve 401
+    When un usuario sin token intenta crear un proyecto con nombre "Proyecto Anónimo"
+    Then la respuesta tiene código de estado 401
+
+  Scenario: Usuario 2 no ve proyectos de usuario 1
+    Given el usuario crea un proyecto con:
+      | name | Proyecto de User1 |
+    And existe un segundo usuario con email "user2@test.com"
+    When el segundo usuario lista sus proyectos
+    Then la respuesta tiene código de estado 200
+    And la lista de proyectos no contiene "Proyecto de User1"
