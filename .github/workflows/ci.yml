@@ -175,7 +175,6 @@ jobs:
 
       - name: Run BDD scenarios
         run: npm run test:bdd
-        working-directory: apps/api
 
   e2e-tests:
     name: 🎭 E2E Tests (Playwright)
