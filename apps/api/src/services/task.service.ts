@@ -20,6 +20,7 @@ const PriorityEnum = (Priority as unknown as Record<string, string>) ?? {
 export const CreateTaskSchema = z.object({
   title: z.string().min(3).max(200),
   description: z.string().optional(),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma enum objects may be undefined in unit tests when @prisma/client is not generated; fallback enum keeps z.nativeEnum runtime-safe.
   priority: z.nativeEnum(PriorityEnum as any).default('MEDIUM'),
   assignedTo: z.string().cuid().optional(),
 })
@@ -27,7 +28,9 @@ export const CreateTaskSchema = z.object({
 export const UpdateTaskSchema = z.object({
   title: z.string().min(3).max(200).optional(),
   description: z.string().optional(),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma enum objects may be undefined in unit tests when @prisma/client is not generated; fallback enum keeps z.nativeEnum runtime-safe.
   status: z.nativeEnum(StatusEnum as any).optional(),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Prisma enum objects may be undefined in unit tests when @prisma/client is not generated; fallback enum keeps z.nativeEnum runtime-safe.
   priority: z.nativeEnum(PriorityEnum as any).optional(),
   assignedTo: z.string().cuid().nullable().optional(),
 })
