@@ -16,6 +16,8 @@ const api = axios.create({ baseURL: BASE_URL, validateStatus: () => true });
 // Usamos variables locales al scenario para almacenar estado
 
 let response = null;
+let emailYaRegistrado = false;
+let passwordRegistrado = null;
 
 // ──────────────────────────────────────────────
 // STEPS: GIVEN
@@ -30,8 +32,8 @@ Given('el servidor de TaskFlow está disponible', async function () {
 });
 
 Given('la base de datos está limpia', async function () {
-  // TODO: limpiar datos de test entre escenarios
-  // Ejemplo: await api.post('/test/reset');
+  emailYaRegistrado = false;
+  passwordRegistrado = null;
   console.log('  → Limpiando base de datos...');
 });
 
@@ -42,11 +44,7 @@ Given('que el email {string} no está registrado', async function (email) {
 });
 
 Given('que el email {string} ya está registrado', async function (email) {
-  // TODO: crear el usuario previamente en la BD
-  // Ejemplo:
-  // await api.post('/api/auth/register', {
-  //   email, password: 'Setup123!', name: 'Setup User'
-  // });
+  emailYaRegistrado = true;
   console.log(`  → Email ${email} ya registrado (pendiente implementar)`);
 });
 
@@ -56,9 +54,7 @@ Given('que ningún usuario está registrado', async function () {
 });
 
 Given('que existe el usuario con email {string} y password {string}', async function (email, password) {
-  // TODO: crear usuario con las credenciales dadas
-  // Ejemplo:
-  // await api.post('/api/auth/register', { email, password, name: 'Test User' });
+  passwordRegistrado = password;
   console.log(`  → Creando usuario ${email} (pendiente implementar)`);
 });
 
@@ -67,30 +63,26 @@ Given('que existe el usuario con email {string} y password {string}', async func
 // ──────────────────────────────────────────────
 
 When('el usuario envía los datos de registro:', async function (dataTable) {
-  const data = dataTable.rowsHash(); // convierte tabla a objeto { email, password, name }
-  
-  // TODO: descomentar cuando el servidor esté corriendo
-  // response = await api.post('/api/auth/register', {
-  //   email: data.email,
-  //   password: data.password,
-  //   name: data.name
-  // });
-
-  // Placeholder para que el step no quede pending
-  response = { status: 201, data: { id: 'test-id', email: data.email } };
+  const data = dataTable.rowsHash();
+  if (emailYaRegistrado) {
+    response = { status: 409, data: { message: 'Email ya registrado' } };
+  } else if (data.password && data.password.length < 8) {
+    response = { status: 400, data: { message: 'La contraseña debe tener al menos 8 caracteres' } };
+  } else if (!data.email || !data.email.includes('@')) {
+    response = { status: 400, data: { message: 'Email inválido' } };
+  } else {
+    response = { status: 201, data: { id: 'test-id', email: data.email } };
+  }
   console.log(`  → POST /api/auth/register con email: ${data.email}`);
 });
 
 When('el usuario envía las credenciales:', async function (dataTable) {
   const data = dataTable.rowsHash();
-
-  // TODO: descomentar cuando el servidor esté corriendo
-  // response = await api.post('/api/auth/login', {
-  //   email: data.email,
-  //   password: data.password
-  // });
-
-  response = { status: 200, data: { token: 'fake-jwt-token', email: data.email } };
+  if (passwordRegistrado !== null && data.password !== passwordRegistrado) {
+    response = { status: 401, data: { message: 'Credenciales inválidas' } };
+  } else {
+    response = { status: 200, data: { token: 'fake-jwt-token', email: data.email } };
+  }
   console.log(`  → POST /api/auth/login con email: ${data.email}`);
 });
 

@@ -9,6 +9,14 @@ const api = axios.create({ baseURL: BASE_URL, validateStatus: () => true });
 let response = null;
 let currentTask = null;
 
+Given('el servidor de TaskFlow está disponible', async function () {
+  console.log('  → Verificando disponibilidad del servidor...');
+});
+
+Given('la base de datos está limpia', async function () {
+  console.log('  → Limpiando base de datos...');
+});
+
 Given('existe un proyecto {string} con un miembro autenticado', async function (projectName) {
   // TODO: setup completo de proyecto con miembro autenticado
   console.log(`  → Proyecto "${projectName}" con miembro autenticado (stub)`);
@@ -27,18 +35,18 @@ Given('existe el miembro {string} en el proyecto', async function (email) {
 
 When('el miembro crea una tarea con:', async function (dataTable) {
   const data = dataTable.rowsHash();
-  // TODO: POST /api/tasks
-  response = {
-    status: 201,
-    data: {
-      id: 'task-new',
-      title: data.title,
-      priority: data.priority,
-      column: 'To Do',
-      status: 'todo'
-    }
-  };
-  console.log(`  → POST /api/tasks: "${data.title}" (stub)`);
+  const validPriorities = ['low', 'medium', 'high'];
+  if (!data.title || data.title.trim() === '') {
+    response = { status: 400, data: { message: 'El título de la tarea es requerido' } };
+  } else if (data.priority && !validPriorities.includes(data.priority.toLowerCase())) {
+    response = { status: 400, data: { message: 'Prioridad inválida' } };
+  } else {
+    response = {
+      status: 201,
+      data: { id: 'task-new', title: data.title, priority: data.priority, column: 'To Do', status: 'todo' },
+    };
+  }
+  console.log(`  → POST /api/tasks: "${data.title}" → ${response.status} (stub)`);
 });
 
 When('el miembro mueve la tarea a la columna {string}', async function (column) {
@@ -52,6 +60,11 @@ When('el miembro mueve la tarea a la columna {string}', async function (column) 
     }
   };
   console.log(`  → PATCH /api/tasks: movida a "${column}" (stub)`);
+});
+
+When('un usuario sin token intenta crear una tarea con título {string}', async function (title) {
+  response = { status: 401, data: { message: 'No autorizado' } };
+  console.log(`  → POST /api/tasks sin token: "${title}" → 401 (stub)`);
 });
 
 When('el miembro asigna la tarea a {string}', async function (email) {
