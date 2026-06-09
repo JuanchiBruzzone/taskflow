@@ -1,5 +1,7 @@
 // tests/unit/task.state-machine.spec.ts
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import * as allure from 'allure-js-commons'
+import { Severity } from 'allure-js-commons'
 import { TaskService } from '../../src/services/task.service'
 import { UnprocessableError } from '../../src/services/auth.service'
 
@@ -32,26 +34,39 @@ const taskService = new TaskService(mockDb as any)
 // US-06: Máquina de estados
 // ════════════════════════════════════════════════════════════════
 describe('TaskService — máquina de estados (US-06)', () => {
-
   beforeEach(() => {
+    vi.clearAllMocks()
     mockDb.statusHistory.create.mockResolvedValue({})
     mockDb.task.update.mockResolvedValue({ id: 'task-1' })
   })
 
   describe('Transiciones VÁLIDAS', () => {
     it('TODO → IN_PROGRESS ✓', async () => {
-      mockDb.task.findUnique.mockResolvedValue(makeTask('TODO'))
+      await allure.feature('Tareas')
+      await allure.story('US-06')
+      await allure.severity(Severity.CRITICAL)
+      await allure.label('tag', 'severity: critical')
+      await allure.link('https://github.com/juanchibruzzone/taskflow/issues/US-06', 'US-06')
+      await allure.description(
+          'Verifica que la máquina de estados permite la transición válida desde TODO hacia IN_PROGRESS.',
+      )
 
-      await expect(
-        taskService.updateTask('task-1', 'user-1', { status: 'IN_PROGRESS' })
-      ).resolves.toBeDefined()
+      await allure.step('Preparar tarea en estado TODO', async () => {
+        mockDb.task.findUnique.mockResolvedValue(makeTask('TODO'))
+      })
+
+      await allure.step('Actualizar estado a IN_PROGRESS', async () => {
+        await expect(
+            taskService.updateTask('task-1', 'user-1', { status: 'IN_PROGRESS' }),
+        ).resolves.toBeDefined()
+      })
     })
 
     it('IN_PROGRESS → DONE ✓', async () => {
       mockDb.task.findUnique.mockResolvedValue(makeTask('IN_PROGRESS'))
 
       await expect(
-        taskService.updateTask('task-1', 'user-1', { status: 'DONE' })
+          taskService.updateTask('task-1', 'user-1', { status: 'DONE' }),
       ).resolves.toBeDefined()
     })
 
@@ -59,7 +74,7 @@ describe('TaskService — máquina de estados (US-06)', () => {
       mockDb.task.findUnique.mockResolvedValue(makeTask('IN_PROGRESS'))
 
       await expect(
-        taskService.updateTask('task-1', 'user-1', { status: 'TODO' })
+          taskService.updateTask('task-1', 'user-1', { status: 'TODO' }),
       ).resolves.toBeDefined()
     })
   })
@@ -69,7 +84,7 @@ describe('TaskService — máquina de estados (US-06)', () => {
       mockDb.task.findUnique.mockResolvedValue(makeTask('TODO'))
 
       await expect(
-        taskService.updateTask('task-1', 'user-1', { status: 'DONE' })
+          taskService.updateTask('task-1', 'user-1', { status: 'DONE' }),
       ).rejects.toThrow(UnprocessableError)
     })
 
@@ -77,18 +92,15 @@ describe('TaskService — máquina de estados (US-06)', () => {
       mockDb.task.findUnique.mockResolvedValue(makeTask('TODO'))
 
       await expect(
-        taskService.updateTask('task-1', 'user-1', { status: 'DONE' })
+          taskService.updateTask('task-1', 'user-1', { status: 'DONE' }),
       ).rejects.toThrow('TODO → DONE')
     })
 
-    // 🐛 Este test FALLA con BUG-01 activo si la ruta permite force:true
-    // En el service puro DONE→TODO lanza error correctamente,
-    // pero el bug está habilitado a nivel de ruta
     it('DONE → TODO ✗ (no se puede reabrir una tarea cerrada)', async () => {
       mockDb.task.findUnique.mockResolvedValue(makeTask('DONE'))
 
       await expect(
-        taskService.updateTask('task-1', 'user-1', { status: 'TODO' })
+          taskService.updateTask('task-1', 'user-1', { status: 'TODO' }),
       ).rejects.toThrow(UnprocessableError)
     })
 
@@ -96,7 +108,7 @@ describe('TaskService — máquina de estados (US-06)', () => {
       mockDb.task.findUnique.mockResolvedValue(makeTask('DONE'))
 
       await expect(
-        taskService.updateTask('task-1', 'user-1', { status: 'IN_PROGRESS' })
+          taskService.updateTask('task-1', 'user-1', { status: 'IN_PROGRESS' }),
       ).rejects.toThrow(UnprocessableError)
     })
 
@@ -104,7 +116,7 @@ describe('TaskService — máquina de estados (US-06)', () => {
       mockDb.task.findUnique.mockResolvedValue(makeTask('DONE'))
 
       await expect(
-        taskService.updateTask('task-1', 'user-1', { status: 'TODO' })
+          taskService.updateTask('task-1', 'user-1', { status: 'TODO' }),
       ).rejects.toThrow('none')
     })
   })

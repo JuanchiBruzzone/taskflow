@@ -1,6 +1,8 @@
 // tests/integration/auth.routes.spec.ts
 import { describe, it, expect, vi } from 'vitest'
 import request from 'supertest'
+import * as allure from 'allure-js-commons'
+import { Severity } from 'allure-js-commons'
 import { createApp } from '../../src/app'
 
 vi.mock('../../src/services/auth.service', async (importOriginal) => {
@@ -14,7 +16,9 @@ vi.mock('../../src/services/auth.service', async (importOriginal) => {
 
   return {
     ...actual,
-    AuthService: vi.fn(function() { return mock }),
+    AuthService: vi.fn(function () {
+      return mock
+    }),
     __mock: mock,
   }
 })
@@ -31,25 +35,37 @@ const app = createApp()
 // POST /auth/register
 // ════════════════════════════════════════════════════════════════
 describe('POST /auth/register', () => {
-
   it('201 — registro exitoso devuelve user y token', async () => {
+    await allure.feature('Autenticación')
+    await allure.story('US-01')
+    await allure.severity(Severity.CRITICAL)
+    await allure.label('tag', 'severity: critical')
+    await allure.link('https://github.com/juanchibruzzone/taskflow/issues/US-01', 'US-01')
+    await allure.description(
+        'Verifica que el endpoint de registro permite crear un usuario válido y devuelve un token JWT junto con los datos del usuario.',
+    )
+
     authMock.register.mockResolvedValue({
       user: { id: 'user-1', email: 'ana@test.com', name: 'Ana' },
       token: 'jwt.token.here',
     })
 
-    const res = await request(app)
-        .post('/auth/register')
-        .send({ email: 'ana@test.com', password: 'Password1', name: 'Ana' })
+    const res = await allure.step('Enviar solicitud de registro con datos válidos', async () => {
+      return request(app)
+          .post('/auth/register')
+          .send({ email: 'ana@test.com', password: 'Password1', name: 'Ana' })
+    })
 
-    expect(res.status).toBe(201)
-    expect(res.body.token).toBeDefined()
-    expect(res.body.user.email).toBe('ana@test.com')
+    await allure.step('Validar respuesta 201 con user y token', async () => {
+      expect(res.status).toBe(201)
+      expect(res.body.token).toBeDefined()
+      expect(res.body.user.email).toBe('ana@test.com')
+    })
   })
 
   it('409 — email ya registrado', async () => {
     authMock.register.mockRejectedValue(
-        new ConflictError('Email already registered')
+        new ConflictError('Email already registered'),
     )
 
     const res = await request(app)
@@ -62,7 +78,7 @@ describe('POST /auth/register', () => {
 
   it('400 — password débil', async () => {
     authMock.register.mockRejectedValue(
-        Object.assign(new Error('Validation error'), { statusCode: 400 })
+        Object.assign(new Error('Validation error'), { statusCode: 400 }),
     )
 
     const res = await request(app)
@@ -74,7 +90,7 @@ describe('POST /auth/register', () => {
 
   it('400 — email con formato inválido', async () => {
     authMock.register.mockRejectedValue(
-        Object.assign(new Error('Invalid email format'), { statusCode: 400 })
+        Object.assign(new Error('Invalid email format'), { statusCode: 400 }),
     )
 
     const res = await request(app)
@@ -89,7 +105,6 @@ describe('POST /auth/register', () => {
 // POST /auth/login
 // ════════════════════════════════════════════════════════════════
 describe('POST /auth/login', () => {
-
   it('200 — login exitoso devuelve token', async () => {
     authMock.login.mockResolvedValue({
       user: { id: 'user-1', email: 'ana@test.com', name: 'Ana' },
@@ -106,7 +121,7 @@ describe('POST /auth/login', () => {
 
   it('401 — credenciales incorrectas', async () => {
     authMock.login.mockRejectedValue(
-        new UnauthorizedError('Invalid credentials')
+        new UnauthorizedError('Invalid credentials'),
     )
 
     const res = await request(app)
@@ -119,7 +134,7 @@ describe('POST /auth/login', () => {
 
   it('401 — cuenta bloqueada', async () => {
     authMock.login.mockRejectedValue(
-        new UnauthorizedError('Account locked. Try again in 14 minutes')
+        new UnauthorizedError('Account locked. Try again in 14 minutes'),
     )
 
     const res = await request(app)

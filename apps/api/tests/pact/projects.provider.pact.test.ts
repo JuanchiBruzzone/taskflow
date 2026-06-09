@@ -60,7 +60,7 @@ describe('Pact provider verification — taskflow-api', () => {
       providerBaseUrl: `http://localhost:${port}`,
 
       pactUrls: [
-        path.resolve(process.cwd(), '../../pacts/taskflow-frontend-taskflow-api.json'),
+        path.resolve(process.cwd(), 'pacts/taskflow-frontend-taskflow-api.json'),
       ],
 
       requestFilter: (req: Request, _res: Response, next: NextFunction) => {
@@ -69,7 +69,7 @@ describe('Pact provider verification — taskflow-api', () => {
       },
 
       stateHandlers: {
-        'usuario autenticado con token válido': async () => {
+        'usuario autenticado con token valido': async () => {
           // User is already seeded in beforeAll; clean projects between verifications
           await prisma.task.deleteMany()
           await prisma.projectMember.deleteMany()
