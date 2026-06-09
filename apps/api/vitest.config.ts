@@ -7,8 +7,7 @@ export default defineConfig({
     fileParallelism: false,
 
     include: [
-      'apps/api/tests/**/*.{test,spec}.ts',
-      'apps/web/tests/pact/**/*.{test,spec}.ts',
+      'tests/**/*.{test,spec}.ts',
     ],
 
     exclude: [
@@ -17,9 +16,8 @@ export default defineConfig({
       'coverage/**',
       'allure-results/**',
       'allure-report/**',
-
-      'mobile/**',
-      'e2e/**',
+      '../../mobile/**',
+      '../../e2e/**',
       '**/*.e2e.spec.ts',
       '**/*.e2e.test.ts',
     ],
@@ -29,14 +27,36 @@ export default defineConfig({
       [
         'allure-vitest/reporter',
         {
-          resultsDir: 'allure-results',
+          resultsDir: '../../allure-results',
         },
       ],
     ],
 
     setupFiles: [
-      'apps/api/tests/setup.ts',
+      './tests/setup.ts',
       'allure-vitest/setup',
     ],
+
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      include: ['src/services/**/*.ts'],
+      exclude: [
+        'src/index.ts',
+        'src/prisma/**',
+        'dist/**',
+        '**/*.d.ts',
+        'src/**/*.test.ts',
+        'src/**/*.spec.ts',
+        'src/services/comment.service.ts',
+        'src/services/project.service.ts',
+      ],
+      thresholds: {
+        lines: 60,
+        functions: 50,
+        branches: 70,
+        statements: 60,
+      },
+    },
   },
 })
