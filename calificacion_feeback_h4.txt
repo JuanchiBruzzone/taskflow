@@ -1,0 +1,28 @@
+Lo que hicieron bien
+
+Los tres bugs corregidos. 
+Token propagado desde setup(), datos dinámicos con Date.now(), endpoint anidado correcto en setup y en la default function.
+Selección de escenario por variable de entorno (--env SCENARIO=load|spike|stress).
+Thresholds diferenciados por tipo de test: stress tiene SLOs más permisivos que load y spike. Esto demuestra comprensión de para qué sirve cada escenario.
+resultados-clase9.md completo con tablas para ambos escenarios y valores propios.
+Orden de lectura de métricas correcto (error rate → checks → percentiles → throughput) con conclusiones bien justificadas.
+Parte 3, pregunta 1 — clasificaron correctamente "Slow under heavy load" con justificación basada en los datos.
+Parte 4 — diagnóstico completo: síntoma, causa, ubicación exacta, corrección propuesta con justificación técnica precisa ("filtra en SQL antes de devolver, reduciendo filas procesadas").
+
+
+Lo que hay que corregir
+
+Login redundante en setup() — igual que otro equipo, el register ya devuelve el token y el login posterior lo descarta. 
+Eliminar ese bloque y usar registerRes.json('token') directamente.
+Inconsistencia entre thresholds del script y los reportados en resultados-clase9.md — el script define p(95)<1000ms pero el markdown muestra 500ms. 
+Los resultados fueron generados con una versión anterior del script? En ese caso se re-ejecuta y actualiza el archivo para que sea consistente.
+Parte 1.3 — descripción de los bugs imprecisa. Describieron los bugs en términos generales ("la API depende de una URL base correcta", 
+"si el flujo falla no arranca autenticado") en lugar de identificar el defecto concreto en el código: falta el prefijo /api, el VU usaba 
+credenciales hardcodeadas, y el setup() no creaba datos. La identificación del bug en el código es el ejercicio central de la Parte 1.
+Parte 3, pregunta 2 — recuperación del sistema. Nuevamente, que el test terminara sin errores no demuestra recuperación de latencia. 
+Para verificarlo hay que observar que los percentiles vuelven a niveles similares al load test cuando los VUs bajan a 0.
+Parte 3, pregunta 3 — threshold para spike inconsistente. Proponen p(95) < 200ms pero sus propios datos muestran p95 = 25.87ms en spike. 
+Un threshold de 200ms sobre un valor real de 26ms no sirve como alerta temprana. 
+Conviene proponer algo más cercano al valor observado, como p(95) < 60ms.
+
+CALIFICACIÓN: 90/100
