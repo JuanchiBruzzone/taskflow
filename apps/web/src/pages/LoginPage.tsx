@@ -33,8 +33,9 @@ export default function LoginPage() {
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Iniciar sesión</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label htmlFor="login-email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
+              id="login-email"
               data-testid="login-email"
               type="email"
               value={email}
@@ -44,8 +45,9 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+            <label htmlFor="login-password" className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
             <input
+              id="login-password"
               data-testid="login-password"
               type="password"
               value={password}
